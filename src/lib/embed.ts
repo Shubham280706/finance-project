@@ -4,18 +4,30 @@ const MISTRAL_URL = "https://api.mistral.ai/v1/embeddings";
 const MODEL = "mistral-embed";
 const DIMENSIONS = 1024; // mistral-embed => 1024, matches the pgvector column.
 const MAX_BATCH = 32; // keep each request well under the per-request token cap
-const THROTTLE_MS = 1100; // ~1 req/sec to respect free-tier rate limits
-const MAX_RETRIES = 4;
+const MIN_SPACING_MS = 1200; // <1 req/sec, shared across all in-flight ingests
+const MAX_RETRIES = 6;
+const MAX_BACKOFF_MS = 60_000;
+const DEFAULT_COOLDOWN_MS = 20_000; // when a 429 gives no Retry-After
 
 // input_type is kept for call-site compatibility; mistral-embed has no such
 // parameter, so it is accepted and ignored.
 export type EmbeddingInputType = "document" | "query";
 
+/** Thrown when embedding fails specifically because of sustained rate limiting. */
+export class EmbeddingRateLimitError extends Error {
+  constructor() {
+    super("Mistral embedding rate limit exceeded");
+    this.name = "EmbeddingRateLimitError";
+  }
+}
+
 /**
- * Embed an array of texts with mistral-embed. Batches into small groups,
- * throttles between requests, retries with backoff (honoring Retry-After on
- * 429s), and validates the returned dimension (1024) so a silent mismatch with
- * the pgvector column can never reach the DB.
+ * Embed an array of texts with mistral-embed. All requests flow through a
+ * single process-wide queue that serializes calls, enforces minimum spacing,
+ * and observes a shared cooldown after any 429 — so several concurrent ingests
+ * (Fluid Compute reuses instances) can't collectively exceed the rate limit.
+ * Retries honor Retry-After. Validates the returned dimension (1024) so a
+ * silent mismatch with the pgvector column can never reach the DB.
  */
 export async function embedTexts(
   texts: string[],
@@ -29,8 +41,6 @@ export async function embedTexts(
     const batch = texts.slice(i, i + MAX_BATCH);
     const vectors = await embedBatchWithRetry(batch, MISTRAL_API_KEY);
     out.push(...vectors);
-    // Throttle between batches (skip after the last one).
-    if (i + MAX_BATCH < texts.length) await sleep(THROTTLE_MS);
   }
   return out;
 }
@@ -41,23 +51,50 @@ export async function embedQuery(text: string): Promise<number[]> {
   return vec;
 }
 
+// ── Process-wide rate-limited queue ─────────────────────────────────────────
+let queue: Promise<unknown> = Promise.resolve();
+let cooldownUntil = 0;
+let lastRequestAt = 0;
+
+/** Run a task serialized behind every other embedding task in this process. */
+function enqueue<T>(task: () => Promise<T>): Promise<T> {
+  const result = queue.then(task);
+  // Keep the chain alive even if a task rejects.
+  queue = result.then(
+    () => undefined,
+    () => undefined,
+  );
+  return result;
+}
+
 async function embedBatchWithRetry(
   batch: string[],
   apiKey: string,
 ): Promise<number[][]> {
+  let sawRateLimit = false;
   let lastErr: unknown;
+
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
-      return await embedBatch(batch, apiKey);
+      return await enqueue(() => embedBatch(batch, apiKey));
     } catch (err) {
       lastErr = err;
+      if (err instanceof RateLimitError) {
+        sawRateLimit = true;
+        // Apply a shared cooldown so queued batches wait out the window too.
+        const wait = err.retryAfterMs || DEFAULT_COOLDOWN_MS;
+        cooldownUntil = Math.max(cooldownUntil, Date.now() + wait);
+      }
       if (attempt === MAX_RETRIES) break;
-      const retryAfter = err instanceof RateLimitError ? err.retryAfterMs : 0;
-      // Rate limits are per-minute; back off long enough to actually clear them.
-      const backoff = retryAfter || 2000 * 2 ** attempt + Math.random() * 500;
+      const backoff =
+        err instanceof RateLimitError
+          ? err.retryAfterMs || DEFAULT_COOLDOWN_MS
+          : Math.min(MAX_BACKOFF_MS, 1500 * 2 ** attempt + Math.random() * 500);
       await sleep(backoff);
     }
   }
+
+  if (sawRateLimit) throw new EmbeddingRateLimitError();
   throw new Error(
     `Mistral embedding failed after ${MAX_RETRIES + 1} attempts: ${String(lastErr)}`,
   );
@@ -74,6 +111,13 @@ async function embedBatch(
   batch: string[],
   apiKey: string,
 ): Promise<number[][]> {
+  // Respect the shared cooldown, then enforce minimum spacing between requests.
+  const cooldownLeft = cooldownUntil - Date.now();
+  if (cooldownLeft > 0) await sleep(cooldownLeft);
+  const sinceLast = Date.now() - lastRequestAt;
+  if (sinceLast < MIN_SPACING_MS) await sleep(MIN_SPACING_MS - sinceLast);
+  lastRequestAt = Date.now();
+
   const res = await fetch(MISTRAL_URL, {
     method: "POST",
     headers: {
@@ -86,12 +130,8 @@ async function embedBatch(
 
   if (res.status === 429) {
     const header = res.headers.get("retry-after");
-    const retryAfterMs = header
-      ? Number(header) * 1000
-      : 30_000; // default: wait 30s for the per-minute window to reset
-    throw new RateLimitError(
-      Number.isFinite(retryAfterMs) ? retryAfterMs : 30_000,
-    );
+    const parsed = header ? Number(header) * 1000 : NaN;
+    throw new RateLimitError(Number.isFinite(parsed) ? parsed : DEFAULT_COOLDOWN_MS);
   }
   if (!res.ok) {
     const body = await res.text();

@@ -4,7 +4,7 @@ import { documents, chunks } from "@/db/schema";
 import { getSupabaseService, FILINGS_BUCKET } from "./supabase";
 import { parsePdf, ScannedPdfError } from "./parse-pdf";
 import { chunkPages } from "./chunk";
-import { embedTexts } from "./embed";
+import { embedTexts, EmbeddingRateLimitError } from "./embed";
 import { MAX_PAGES } from "./constants";
 
 const INSERT_BATCH = 200;
@@ -78,10 +78,15 @@ export async function processDocument(
       .where(eq(documents.id, documentId));
   } catch (err) {
     console.error(`[FilingIQ] Ingest failed for ${documentId}:`, err);
-    const message =
-      err instanceof ScannedPdfError
-        ? "This looks like a scanned document; OCR isn't supported yet."
-        : "We couldn't process this document. Please try a different file.";
+    let message: string;
+    if (err instanceof ScannedPdfError) {
+      message = "This looks like a scanned document; OCR isn't supported yet.";
+    } else if (err instanceof EmbeddingRateLimitError) {
+      message =
+        "The embedding service is busy right now (rate limit). Please wait a minute and upload again.";
+    } else {
+      message = "We couldn't process this document. Please try a different file.";
+    }
     await markError(documentId, message);
   }
 }
