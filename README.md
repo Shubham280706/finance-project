@@ -136,3 +136,4 @@ supabase/setup.sql            one-time Supabase setup
 
 > Answers are grounded in the uploaded document. For analysis only, not
 > financial advice.
+# finance-project
