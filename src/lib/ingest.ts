@@ -4,7 +4,7 @@ import { documents, chunks } from "@/db/schema";
 import { getSupabaseService, FILINGS_BUCKET } from "./supabase";
 import { parsePdf, ScannedPdfError } from "./parse-pdf";
 import { chunkPages } from "./chunk";
-import { embedTexts, EmbeddingRateLimitError } from "./embed";
+import { embedTexts, EmbeddingRateLimitError, EmbeddingAuthError } from "./embed";
 import { MAX_PAGES } from "./constants";
 
 const INSERT_BATCH = 200;
@@ -81,6 +81,9 @@ export async function processDocument(
     let message: string;
     if (err instanceof ScannedPdfError) {
       message = "This looks like a scanned document; OCR isn't supported yet.";
+    } else if (err instanceof EmbeddingAuthError) {
+      message =
+        "The embedding service rejected our credentials. This is a server configuration issue, not a problem with your file.";
     } else if (err instanceof EmbeddingRateLimitError) {
       message =
         "The embedding service is busy right now (rate limit). Please wait a minute and upload again.";

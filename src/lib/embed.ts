@@ -21,6 +21,25 @@ export class EmbeddingRateLimitError extends Error {
   }
 }
 
+/** Thrown when Mistral rejects our credentials (401/403) — not retryable. */
+export class EmbeddingAuthError extends Error {
+  constructor(detail: string) {
+    super(`Mistral rejected the API key: ${detail}`);
+    this.name = "EmbeddingAuthError";
+  }
+}
+
+/** Non-retryable client error (e.g. 400/401/403). Retrying won't help. */
+class FatalEmbeddingError extends Error {
+  constructor(
+    message: string,
+    public readonly auth: boolean,
+  ) {
+    super(message);
+    this.name = "FatalEmbeddingError";
+  }
+}
+
 /**
  * Embed an array of texts with mistral-embed. All requests flow through a
  * single process-wide queue that serializes calls, enforces minimum spacing,
@@ -79,6 +98,11 @@ async function embedBatchWithRetry(
       return await enqueue(() => embedBatch(batch, apiKey));
     } catch (err) {
       lastErr = err;
+      // Non-retryable client errors (bad key, malformed request): fail now.
+      if (err instanceof FatalEmbeddingError) {
+        if (err.auth) throw new EmbeddingAuthError(err.message);
+        throw err;
+      }
       if (err instanceof RateLimitError) {
         sawRateLimit = true;
         // Apply a shared cooldown so queued batches wait out the window too.
@@ -135,6 +159,13 @@ async function embedBatch(
   }
   if (!res.ok) {
     const body = await res.text();
+    // 400/401/403 are configuration/request bugs — retrying never helps.
+    if (res.status === 401 || res.status === 403) {
+      throw new FatalEmbeddingError(`Mistral ${res.status}: ${body}`, true);
+    }
+    if (res.status === 400) {
+      throw new FatalEmbeddingError(`Mistral ${res.status}: ${body}`, false);
+    }
     throw new Error(`Mistral ${res.status}: ${body}`);
   }
 
