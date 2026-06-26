@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import type { Citation } from "@/lib/client";
 
 export type Message = {
@@ -124,13 +126,13 @@ function MessageBubble({ message }: { message: Message }) {
 
   return (
     <div className="animate-rise max-w-[92%]">
-      <div
-        className={`whitespace-pre-wrap text-[15px] leading-relaxed ${
-          message.error ? "text-danger" : "text-ink"
-        }`}
-      >
-        {message.content}
-      </div>
+      {message.error ? (
+        <div className="whitespace-pre-wrap text-[15px] leading-relaxed text-danger">
+          {message.content}
+        </div>
+      ) : (
+        <Markdown content={message.content} />
+      )}
       {message.citations && message.citations.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-1.5">
           {message.citations.map((c) => (
@@ -138,6 +140,69 @@ function MessageBubble({ message }: { message: Message }) {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function Markdown({ content }: { content: string }) {
+  return (
+    <div className="text-[15px] leading-relaxed text-ink">
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          p: ({ children }) => <p className="my-2 first:mt-0 last:mb-0">{children}</p>,
+          h1: ({ children }) => (
+            <h1 className="mb-2 mt-4 font-serif text-xl text-ink first:mt-0">{children}</h1>
+          ),
+          h2: ({ children }) => (
+            <h2 className="mb-2 mt-4 font-serif text-lg text-ink first:mt-0">{children}</h2>
+          ),
+          h3: ({ children }) => (
+            <h3 className="mb-1.5 mt-3 text-sm font-semibold uppercase tracking-wide text-ink-soft first:mt-0">
+              {children}
+            </h3>
+          ),
+          strong: ({ children }) => (
+            <strong className="font-semibold text-ink">{children}</strong>
+          ),
+          ul: ({ children }) => (
+            <ul className="my-2 list-disc space-y-1 pl-5">{children}</ul>
+          ),
+          ol: ({ children }) => (
+            <ol className="my-2 list-decimal space-y-1 pl-5">{children}</ol>
+          ),
+          code: ({ children }) => (
+            <code className="rounded bg-line/60 px-1 py-0.5 font-mono text-[13px]">
+              {children}
+            </code>
+          ),
+          a: ({ children, href }) => (
+            <a href={href} className="text-accent underline underline-offset-2">
+              {children}
+            </a>
+          ),
+          table: ({ children }) => (
+            <div className="my-3 overflow-x-auto rounded-lg border border-line">
+              <table className="w-full border-collapse text-sm tabular-nums">
+                {children}
+              </table>
+            </div>
+          ),
+          thead: ({ children }) => (
+            <thead className="bg-accent-soft text-accent-ink">{children}</thead>
+          ),
+          th: ({ children }) => (
+            <th className="border-b border-line px-3 py-2 text-left font-semibold">
+              {children}
+            </th>
+          ),
+          td: ({ children }) => (
+            <td className="border-b border-line/60 px-3 py-1.5">{children}</td>
+          ),
+        }}
+      >
+        {content}
+      </ReactMarkdown>
     </div>
   );
 }
