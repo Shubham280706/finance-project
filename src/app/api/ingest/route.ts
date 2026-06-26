@@ -5,6 +5,7 @@ import { consume, LIMITS } from "@/lib/rate-limit";
 import { db } from "@/db/client";
 import { documents } from "@/db/schema";
 import { processDocument } from "@/lib/ingest";
+import { getSessionUser } from "@/lib/supabase-server";
 
 export const maxDuration = 300;
 
@@ -14,6 +15,9 @@ const bodySchema = z.object({
 });
 
 export const POST = handler(async (req: Request) => {
+  const user = await getSessionUser();
+  if (!user) return fail("Please sign in to upload a document.", 401);
+
   const ip = clientIp(req);
   const rl = consume(`ingest:${ip}`, LIMITS.ingest.limit, LIMITS.ingest.windowMs);
   if (!rl.allowed) {
@@ -35,7 +39,7 @@ export const POST = handler(async (req: Request) => {
   // Create the document row immediately, then process in the background.
   const [doc] = await db
     .insert(documents)
-    .values({ title, storagePath, status: "processing" })
+    .values({ title, storagePath, status: "processing", userId: user.id })
     .returning({ id: documents.id, status: documents.status });
 
   after(() => processDocument(doc.id, storagePath));

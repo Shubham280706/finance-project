@@ -11,6 +11,7 @@ export type DocumentInfo = {
   errorMessage: string | null;
   pageCount: number | null;
   chunkCount: number | null;
+  createdAt?: string;
 };
 
 export type Citation = { page: number; snippet: string };
@@ -71,6 +72,13 @@ export async function uploadAndIngest(
   }>("/api/ingest", { storagePath, title });
 
   return documentId;
+}
+
+export async function listDocuments(): Promise<DocumentInfo[]> {
+  const res = await fetch("/api/documents");
+  const json = (await res.json()) as ApiResponse<DocumentInfo[]>;
+  if (!json.ok) throw new Error(json.error);
+  return json.data;
 }
 
 export async function getDocument(id: string): Promise<DocumentInfo> {

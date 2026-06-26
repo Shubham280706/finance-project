@@ -10,6 +10,9 @@ import {
 
 export const documents = pgTable("documents", {
   id: uuid("id").primaryKey().defaultRandom(),
+  // References auth.users(id); FK + index created via SQL (auth schema is
+  // outside Drizzle's managed scope). Always set on insert from the session.
+  userId: uuid("user_id"),
   title: text("title").notNull(),
   storagePath: text("storage_path").notNull(),
   status: text("status", { enum: ["processing", "ready", "error"] })

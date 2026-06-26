@@ -1,6 +1,7 @@
 import { z } from "zod";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { fail, handler, ok, clientIp } from "@/lib/api";
+import { getSessionUser } from "@/lib/supabase-server";
 import { consume, LIMITS } from "@/lib/rate-limit";
 import { db } from "@/db/client";
 import { documents } from "@/db/schema";
@@ -17,6 +18,9 @@ const bodySchema = z.object({
 });
 
 export const POST = handler(async (req: Request) => {
+  const user = await getSessionUser();
+  if (!user) return fail("Please sign in.", 401);
+
   const ip = clientIp(req);
   const rl = consume(`chat:${ip}`, LIMITS.chat.limit, LIMITS.chat.windowMs);
   if (!rl.allowed) {
@@ -39,7 +43,7 @@ export const POST = handler(async (req: Request) => {
   const [doc] = await db
     .select({ status: documents.status, errorMessage: documents.errorMessage })
     .from(documents)
-    .where(eq(documents.id, documentId))
+    .where(and(eq(documents.id, documentId), eq(documents.userId, user.id)))
     .limit(1);
 
   if (!doc) return fail("Document not found.", 404);

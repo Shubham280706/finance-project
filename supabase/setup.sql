@@ -8,6 +8,7 @@ create extension if not exists vector;
 -- 2. Tables.
 create table if not exists documents (
   id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade,
   title text not null,
   storage_path text not null,
   status text not null default 'processing'
@@ -17,6 +18,11 @@ create table if not exists documents (
   chunk_count integer,
   created_at timestamptz not null default now()
 );
+
+-- For existing installs: add the owner column if the table predates auth.
+alter table documents
+  add column if not exists user_id uuid references auth.users(id) on delete cascade;
+create index if not exists documents_user_id_idx on documents(user_id);
 
 create table if not exists chunks (
   id uuid primary key default gen_random_uuid(),

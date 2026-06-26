@@ -2,6 +2,7 @@ import { z } from "zod";
 import { randomUUID } from "crypto";
 import { fail, handler, ok } from "@/lib/api";
 import { getSupabaseService, FILINGS_BUCKET } from "@/lib/supabase";
+import { getSessionUser } from "@/lib/supabase-server";
 import { MAX_UPLOAD_BYTES } from "@/lib/constants";
 
 const bodySchema = z.object({
@@ -10,6 +11,9 @@ const bodySchema = z.object({
 });
 
 export const POST = handler(async (req: Request) => {
+  const user = await getSessionUser();
+  if (!user) return fail("Please sign in to upload a document.", 401);
+
   const json = await req.json().catch(() => null);
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) {

@@ -30,6 +30,10 @@ Upload (browser → Supabase Storage via signed URL)
   an HNSW index, scoped to the active document.
 - **Generation:** `claude-sonnet-4-6` (or `claude-haiku-4-5-20251001` in cheap
   mode) with a faithfulness prompt that forces page citations and refusal.
+- **Accounts & history:** Supabase Auth (email + password, cookie sessions via
+  `@supabase/ssr`). Documents are scoped by `user_id`; every route resolves the
+  signed-in user and only lists/answers that user's own filings. A sidebar shows
+  your upload history so you can switch documents and re-ask anytime.
 
 ---
 
@@ -65,6 +69,10 @@ required one is missing. Only `NEXT_PUBLIC_*` values reach the browser.
    - the private `filings` Storage bucket.
 3. Grab your connection string (**Project Settings → Database → Connection
    pooling**), the project URL, the anon key, and the service-role key.
+4. **Auth:** the app uses Supabase Auth (email + password) so each user gets a
+   private document history. For instant sign-up during development, you can
+   turn off **Authentication → Providers → Email → "Confirm email"**; leave it
+   on in production so addresses are verified.
 
 > Alternatively, `npm run db:push` applies the Drizzle schema, but you must
 > still run `supabase/setup.sql` for the extension, `match_chunks` function, and
