@@ -1,26 +1,97 @@
 @import "tailwindcss";
 
+/*
+  FilingIQ — editorial "ledger" aesthetic.
+  Warm paper background, ink text, a single deep-green accent used sparingly.
+*/
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --paper: #f6f4ee;
+  --paper-raised: #fffdf8;
+  --ink: #1b1a17;
+  --ink-soft: #55524a;
+  --ink-faint: #8b877c;
+  --line: #e3ded2;
+  --line-strong: #d2ccbd;
+  --accent: #0b5e4e;
+  --accent-soft: #e7f0ec;
+  --accent-ink: #094c40;
+  --danger: #9a3328;
+  --danger-soft: #f6e7e3;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-paper: var(--paper);
+  --color-paper-raised: var(--paper-raised);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-serif: var(--font-serif);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background: var(--paper);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+.font-serif {
+  font-family: var(--font-serif), Georgia, serif;
+}
+
+@keyframes filingiq-fade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-rise {
+  animation: filingiq-fade 0.35s ease-out both;
+}
+
+@keyframes filingiq-blink {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.dot-pulse > span {
+  animation: filingiq-blink 1.1s infinite ease-in-out;
+}
+.dot-pulse > span:nth-child(2) {
+  animation-delay: 0.18s;
+}
+.dot-pulse > span:nth-child(3) {
+  animation-delay: 0.36s;
+}
+
+/* Custom scrollbar for the chat scroll area. */
+.thin-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.thin-scroll::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 999px;
+}
+.thin-scroll::-webkit-scrollbar-track {
+  background: transparent;
 }
