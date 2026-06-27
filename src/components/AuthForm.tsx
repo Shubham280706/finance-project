@@ -34,7 +34,12 @@ export function AuthForm() {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
+            // Where the verification link sends the user back. Prefer an
+            // explicit public URL so the email works from any device; only
+            // fall back to the current origin (e.g. localhost) when unset.
+            emailRedirectTo: `${
+              process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin
+            }/auth/callback`,
           },
         });
         if (error) throw error;
