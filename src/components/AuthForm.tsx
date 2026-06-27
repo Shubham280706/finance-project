@@ -53,7 +53,7 @@ export function AuthForm() {
             <LogoMark size={18} />
           </span>
           <span className="font-serif text-[22px] font-semibold tracking-[-0.01em] text-on-green-bright">
-            FilingIQ
+            DocAlpha
           </span>
         </div>
         <div className="my-auto">
@@ -86,7 +86,7 @@ export function AuthForm() {
               <LogoMark size={17} />
             </span>
             <span className="font-serif text-xl font-semibold tracking-[-0.01em]">
-              FilingIQ
+              DocAlpha
             </span>
           </div>
 

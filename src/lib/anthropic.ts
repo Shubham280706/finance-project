@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { getEnv } from "./env";
 
-export const FAITHFULNESS_SYSTEM_PROMPT = `You are FilingIQ, an assistant that answers questions about a single financial document
+export const FAITHFULNESS_SYSTEM_PROMPT = `You are DocAlpha, an assistant that answers questions about a single financial document
 (an annual report, regulatory filing, or earnings-call transcript).
 
 STRICT RULES:

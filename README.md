@@ -1,4 +1,4 @@
-# FilingIQ
+# DocAlpha
 
 **Chat with annual reports & earnings calls.** Upload a financial PDF (annual
 report, 10-K, or earnings-call transcript) and ask questions in plain English.

@@ -26,7 +26,7 @@ export async function parsePdf(buffer: Buffer): Promise<ParsedPage[]> {
       pages = await parseWithLlama(buffer, LLAMA_CLOUD_API_KEY);
     } catch (err) {
       if (err instanceof ScannedPdfError) throw err;
-      console.error("[FilingIQ] LlamaParse failed, falling back to unpdf:", err);
+      console.error("[DocAlpha] LlamaParse failed, falling back to unpdf:", err);
       pages = await parseWithUnpdf(buffer);
     }
   } else {

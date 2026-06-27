@@ -77,7 +77,7 @@ export async function processDocument(
       })
       .where(eq(documents.id, documentId));
   } catch (err) {
-    console.error(`[FilingIQ] Ingest failed for ${documentId}:`, err);
+    console.error(`[DocAlpha] Ingest failed for ${documentId}:`, err);
     let message: string;
     if (err instanceof ScannedPdfError) {
       message = "This looks like a scanned document; OCR isn't supported yet.";
@@ -101,6 +101,6 @@ async function markError(documentId: string, message: string): Promise<void> {
       .set({ status: "error", errorMessage: message })
       .where(eq(documents.id, documentId));
   } catch (err) {
-    console.error(`[FilingIQ] Failed to mark error for ${documentId}:`, err);
+    console.error(`[DocAlpha] Failed to mark error for ${documentId}:`, err);
   }
 }

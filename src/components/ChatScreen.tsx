@@ -66,7 +66,7 @@ export function ChatScreen({
             <LogoMark size={17} />
           </span>
           <span className="font-serif text-[20px] font-semibold tracking-[-0.01em] text-on-green-bright">
-            FilingIQ
+            DocAlpha
           </span>
         </div>
 

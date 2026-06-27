@@ -49,7 +49,7 @@ export function HomeScreen({
             <LogoMark size={18} />
           </span>
           <span className="font-serif text-[22px] font-semibold tracking-[-0.01em] text-on-green-bright">
-            FilingIQ
+            DocAlpha
           </span>
         </div>
 

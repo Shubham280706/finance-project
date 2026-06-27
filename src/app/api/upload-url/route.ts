@@ -39,7 +39,7 @@ export const POST = handler(async (req: Request) => {
     .createSignedUploadUrl(storagePath);
 
   if (error || !data) {
-    console.error("[FilingIQ] createSignedUploadUrl failed:", error);
+    console.error("[DocAlpha] createSignedUploadUrl failed:", error);
     return fail("Could not create an upload URL. Please try again.", 500);
   }
 

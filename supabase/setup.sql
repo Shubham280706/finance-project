@@ -1,4 +1,4 @@
--- FilingIQ — one-time Supabase setup.
+-- DocAlpha — one-time Supabase setup.
 -- Run this in the Supabase SQL editor (or via the Drizzle migration).
 -- It is idempotent and safe to re-run.
 

@@ -3,7 +3,7 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-/** Renders assistant Markdown (GFM tables, headings, lists) in the FilingIQ style. */
+/** Renders assistant Markdown (GFM tables, headings, lists) in the DocAlpha style. */
 export function Markdown({ content }: { content: string }) {
   return (
     <div className="text-[15.5px] leading-[1.62] text-ink-3">

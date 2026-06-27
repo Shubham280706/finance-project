@@ -26,7 +26,7 @@ export function handler<Args extends unknown[]>(
     try {
       return await fn(...args);
     } catch (err) {
-      console.error("[FilingIQ] Unhandled route error:", err);
+      console.error("[DocAlpha] Unhandled route error:", err);
       return fail(
         "Something went wrong on our end. Please try again.",
         500,

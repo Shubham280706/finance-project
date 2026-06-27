@@ -22,7 +22,7 @@ const newsreader = Newsreader({
 });
 
 export const metadata: Metadata = {
-  title: "FilingIQ — Chat with annual reports & earnings calls",
+  title: "DocAlpha — Chat with annual reports & earnings calls",
   description:
     "Upload a financial filing and ask questions. Every answer is grounded in the document and cites the exact page.",
 };

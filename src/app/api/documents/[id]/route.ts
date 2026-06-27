@@ -70,7 +70,7 @@ export const DELETE = handler(
         .storage.from(FILINGS_BUCKET)
         .remove([doc.storagePath]);
     } catch (err) {
-      console.error("[FilingIQ] Failed to remove storage object:", err);
+      console.error("[DocAlpha] Failed to remove storage object:", err);
     }
 
     // Delete the row; chunks cascade via the FK.
