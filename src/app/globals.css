@@ -1,35 +1,73 @@
 @import "tailwindcss";
 
 /*
-  FilingIQ — editorial "ledger" aesthetic.
-  Warm paper background, ink text, a single deep-green accent used sparingly.
+  FilingIQ — design tokens from the Claude Design handoff.
+  Deep "ledger green" #10503b on warm paper #f4f3ee, with Newsreader (serif),
+  IBM Plex Sans (body), and IBM Plex Mono (labels / numbers / citations).
 */
 :root {
-  --paper: #f6f4ee;
-  --paper-raised: #fffdf8;
-  --ink: #1b1a17;
-  --ink-soft: #55524a;
-  --ink-faint: #8b877c;
-  --line: #e3ded2;
-  --line-strong: #d2ccbd;
-  --accent: #0b5e4e;
-  --accent-soft: #e7f0ec;
-  --accent-ink: #094c40;
+  --paper: #f4f3ee;
+  --paper-2: #f6f5ef;
+  --card: #faf9f4;
+  --card-2: #fbfaf5;
+  --line: #e4e2d8;
+  --line-2: #ece9df;
+  --line-3: #d8d6ca;
+  --line-4: #cdcbbe;
+
+  --brand: #10503b;
+  --brand-dark: #0d4331;
+  --brand-tint: #eef3ee;
+  --brand-tint-2: #e7efe9;
+  --brand-tint-border: #cbdfd2;
+
+  --ink: #1c1d1a;
+  --ink-2: #3a3c34;
+  --ink-3: #4a4c42;
+  --ink-soft: #54574e;
+  --muted: #9a9c90;
+  --muted-2: #6b6d63;
+  --faint: #a3a499;
+
+  --on-green: #eaf0ea;
+  --on-green-bright: #fbfdfb;
+  --on-green-muted: #a9c2b6;
+  --on-green-mono: #6f9684;
+  --on-green-mono-2: #7fa28f;
+
+  --ready: #3f8c6a;
+  --amber: #d9a441;
+  --amber-text: #b0863a;
   --danger: #9a3328;
   --danger-soft: #f6e7e3;
 }
 
 @theme inline {
   --color-paper: var(--paper);
-  --color-paper-raised: var(--paper-raised);
-  --color-ink: var(--ink);
-  --color-ink-soft: var(--ink-soft);
-  --color-ink-faint: var(--ink-faint);
+  --color-paper-2: var(--paper-2);
+  --color-card: var(--card);
+  --color-card-2: var(--card-2);
   --color-line: var(--line);
-  --color-line-strong: var(--line-strong);
-  --color-accent: var(--accent);
-  --color-accent-soft: var(--accent-soft);
-  --color-accent-ink: var(--accent-ink);
+  --color-line-2: var(--line-2);
+  --color-line-3: var(--line-3);
+  --color-line-4: var(--line-4);
+  --color-brand: var(--brand);
+  --color-brand-dark: var(--brand-dark);
+  --color-brand-tint: var(--brand-tint);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-ink-soft: var(--ink-soft);
+  --color-muted: var(--muted);
+  --color-muted-2: var(--muted-2);
+  --color-faint: var(--faint);
+  --color-on-green: var(--on-green);
+  --color-on-green-bright: var(--on-green-bright);
+  --color-on-green-muted: var(--on-green-muted);
+  --color-on-green-mono: var(--on-green-mono);
+  --color-ready: var(--ready);
+  --color-amber: var(--amber);
+  --color-amber-text: var(--amber-text);
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
   --font-sans: var(--font-sans);
@@ -47,11 +85,32 @@ body {
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
+::selection {
+  background: var(--brand);
+  color: var(--paper);
+}
+
 .font-serif {
   font-family: var(--font-serif), Georgia, serif;
 }
+.font-mono {
+  font-family: var(--font-mono), ui-monospace, monospace;
+}
 
-@keyframes filingiq-fade {
+/* Scrollbar matching the design. */
+.fiq-scroll::-webkit-scrollbar {
+  width: 9px;
+}
+.fiq-scroll::-webkit-scrollbar-thumb {
+  background: #d9d7cc;
+  border-radius: 9px;
+  border: 2px solid var(--paper);
+}
+.fiq-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@keyframes fiq-fade {
   from {
     opacity: 0;
     transform: translateY(6px);
@@ -62,36 +121,28 @@ body {
   }
 }
 .animate-rise {
-  animation: filingiq-fade 0.35s ease-out both;
+  animation: fiq-fade 0.32s ease-out both;
 }
 
-@keyframes filingiq-blink {
+@keyframes fiq-pulse {
   0%,
   100% {
-    opacity: 0.25;
+    opacity: 0.55;
   }
   50% {
     opacity: 1;
   }
 }
+.animate-fiq-pulse {
+  animation: fiq-pulse 2.4s ease-in-out infinite;
+}
+
 .dot-pulse > span {
-  animation: filingiq-blink 1.1s infinite ease-in-out;
+  animation: fiq-pulse 1.1s infinite ease-in-out;
 }
 .dot-pulse > span:nth-child(2) {
   animation-delay: 0.18s;
 }
 .dot-pulse > span:nth-child(3) {
   animation-delay: 0.36s;
-}
-
-/* Custom scrollbar for the chat scroll area. */
-.thin-scroll::-webkit-scrollbar {
-  width: 8px;
-}
-.thin-scroll::-webkit-scrollbar-thumb {
-  background: var(--line-strong);
-  border-radius: 999px;
-}
-.thin-scroll::-webkit-scrollbar-track {
-  background: transparent;
 }

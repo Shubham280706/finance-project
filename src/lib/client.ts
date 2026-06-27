@@ -17,6 +17,13 @@ export type DocumentInfo = {
 export type Citation = { page: number; snippet: string };
 export type ChatResult = { answer: string; citations: Citation[] };
 
+export type Message = {
+  role: "user" | "assistant";
+  content: string;
+  citations?: Citation[];
+  error?: boolean;
+};
+
 async function postJson<T>(url: string, body: unknown): Promise<T> {
   const res = await fetch(url, {
     method: "POST",
