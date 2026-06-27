@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
+import { validateGmail } from "@/lib/email";
 import { LogoMark } from "./LogoMark";
 
 type Mode = "signin" | "signup";
@@ -18,14 +19,29 @@ export function AuthForm() {
     e.preventDefault();
     setError(null);
     setNotice(null);
+
+    const emailError = validateGmail(email);
+    if (emailError) {
+      setError(emailError);
+      return;
+    }
+
     setBusy(true);
     const supabase = getSupabaseBrowser();
     try {
       if (mode === "signup") {
-        const { data, error } = await supabase.auth.signUp({ email, password });
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+          },
+        });
         if (error) throw error;
         if (!data.session) {
-          setNotice("Check your email to confirm your account, then sign in.");
+          setNotice(
+            "We sent a verification link to your Gmail. Click it to confirm your account, then sign in.",
+          );
           setMode("signin");
         }
       } else {
@@ -102,7 +118,7 @@ export function AuthForm() {
           <form onSubmit={submit} className="mt-7 space-y-3">
             <Field
               type="email"
-              placeholder="you@example.com"
+              placeholder="you@gmail.com"
               value={email}
               autoComplete="email"
               onChange={setEmail}
