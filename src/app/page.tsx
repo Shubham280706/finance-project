@@ -9,6 +9,7 @@ import { ChatScreen } from "@/components/ChatScreen";
 import { LogoMark } from "@/components/LogoMark";
 import {
   askQuestion,
+  deleteDocument,
   getDocument,
   listDocuments,
   uploadAndIngest,
@@ -192,6 +193,27 @@ function Workspace({ user }: { user: User }) {
     if (selectedId) setMessagesByDoc((m) => ({ ...m, [selectedId]: [] }));
   }
 
+  async function handleDelete(id: string) {
+    const prev = documents;
+    // Optimistically remove; if we were viewing it, return to home.
+    setDocuments((docs) => docs.filter((d) => d.id !== id));
+    setMessagesByDoc((m) => {
+      const next = { ...m };
+      delete next[id];
+      return next;
+    });
+    if (selectedId === id) newDocument();
+    try {
+      await deleteDocument(id);
+    } catch (err) {
+      // Restore on failure.
+      setDocuments(prev);
+      setUploadError(
+        err instanceof Error ? err.message : "Couldn't delete the document.",
+      );
+    }
+  }
+
   async function signOut() {
     stopPolling();
     await getSupabaseBrowser().auth.signOut();
@@ -212,6 +234,7 @@ function Workspace({ user }: { user: User }) {
         onSelectDoc={selectDoc}
         onNew={newDocument}
         onNewChat={newChat}
+        onDelete={handleDelete}
         onSignOut={signOut}
       />
     );
@@ -226,6 +249,7 @@ function Workspace({ user }: { user: User }) {
       uploadError={uploadError}
       onFile={handleFile}
       onOpenDoc={selectDoc}
+      onDelete={handleDelete}
       onSignOut={signOut}
     />
   );

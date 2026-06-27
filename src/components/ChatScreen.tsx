@@ -21,6 +21,7 @@ export function ChatScreen({
   onSelectDoc,
   onNew,
   onNewChat,
+  onDelete,
   onSignOut,
 }: {
   email: string | undefined;
@@ -32,6 +33,7 @@ export function ChatScreen({
   onSelectDoc: (id: string) => void;
   onNew: () => void;
   onNewChat: () => void;
+  onDelete: (id: string) => void;
   onSignOut: () => void;
 }) {
   const [draft, setDraft] = useState("");
@@ -85,10 +87,10 @@ export function ChatScreen({
           {documents.map((f) => {
             const active = f.id === doc.id;
             return (
-              <button
+              <div
                 key={f.id}
                 onClick={() => f.status === "ready" && onSelectDoc(f.id)}
-                className={`flex flex-col gap-[5px] rounded-lg px-[11px] py-[10px] text-left transition ${
+                className={`group flex flex-col gap-[5px] rounded-lg px-[11px] py-[10px] text-left transition ${
                   active ? "bg-white/[0.12]" : "hover:bg-white/[0.06]"
                 } ${f.status === "ready" ? "cursor-pointer" : "cursor-default"}`}
               >
@@ -100,16 +102,37 @@ export function ChatScreen({
                   >
                     {f.title}
                   </span>
-                  <span
-                    className="h-[6px] w-[6px] shrink-0 rounded-full"
-                    style={{ background: railDot(f.status) }}
-                  />
+                  <span className="flex shrink-0 items-center gap-2">
+                    <span
+                      className="h-[6px] w-[6px] rounded-full group-hover:hidden"
+                      style={{ background: railDot(f.status) }}
+                    />
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (
+                          window.confirm(
+                            `Delete "${f.title}"? This removes the file and its index permanently.`,
+                          )
+                        )
+                          onDelete(f.id);
+                      }}
+                      title="Delete document"
+                      aria-label={`Delete ${f.title}`}
+                      className="hidden text-on-green-mono transition hover:text-[#e08a7c] group-hover:block"
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                        <path d="M10 11v6M14 11v6" />
+                      </svg>
+                    </button>
+                  </span>
                 </span>
                 <span className="font-mono text-[10.5px] text-[#7fa28f]">
                   {f.pageCount ? `${f.pageCount}p · ` : ""}
                   {railStatus(f.status)}
                 </span>
-              </button>
+              </div>
             );
           })}
         </div>

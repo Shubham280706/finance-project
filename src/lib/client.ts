@@ -95,6 +95,12 @@ export async function getDocument(id: string): Promise<DocumentInfo> {
   return json.data;
 }
 
+export async function deleteDocument(id: string): Promise<void> {
+  const res = await fetch(`/api/documents/${id}`, { method: "DELETE" });
+  const json = (await res.json()) as ApiResponse<{ deleted: boolean }>;
+  if (!json.ok) throw new Error(json.error);
+}
+
 export async function askQuestion(
   documentId: string,
   question: string,

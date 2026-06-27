@@ -19,6 +19,7 @@ export function HomeScreen({
   uploadError,
   onFile,
   onOpenDoc,
+  onDelete,
   onSignOut,
 }: {
   email: string | undefined;
@@ -28,6 +29,7 @@ export function HomeScreen({
   uploadError: string | null;
   onFile: (f: File) => void;
   onOpenDoc: (id: string) => void;
+  onDelete: (id: string) => void;
   onSignOut: () => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -199,11 +201,12 @@ export function HomeScreen({
         </div>
 
         <div className="mt-[14px] overflow-hidden rounded-[11px] border border-line bg-card">
-          <div className="grid grid-cols-[1fr_120px_64px_104px] gap-4 border-b border-line px-[18px] py-[11px] font-mono text-[10px] uppercase tracking-[0.14em] text-faint">
+          <div className="grid grid-cols-[1fr_110px_56px_92px_34px] gap-4 border-b border-line px-[18px] py-[11px] font-mono text-[10px] uppercase tracking-[0.14em] text-faint">
             <span>Document</span>
             <span>Added</span>
             <span className="text-right">Pages</span>
             <span className="text-right">Status</span>
+            <span />
           </div>
           {documents.length === 0 ? (
             <div className="px-[18px] py-6 font-mono text-[12.5px] text-muted">
@@ -211,10 +214,10 @@ export function HomeScreen({
             </div>
           ) : (
             documents.map((doc) => (
-              <button
+              <div
                 key={doc.id}
                 onClick={() => doc.status === "ready" && onOpenDoc(doc.id)}
-                className={`grid w-full grid-cols-[1fr_120px_64px_104px] items-center gap-4 border-t border-line-2 px-[18px] py-[15px] text-left transition ${
+                className={`group grid grid-cols-[1fr_110px_56px_92px_34px] items-center gap-4 border-t border-line-2 px-[18px] py-[15px] text-left transition ${
                   doc.status === "ready"
                     ? "cursor-pointer hover:bg-[#f1efe6]"
                     : "cursor-default"
@@ -236,7 +239,8 @@ export function HomeScreen({
                   {doc.pageCount ?? "—"}
                 </span>
                 <StatusCell status={doc.status} />
-              </button>
+                <DeleteButton title={doc.title} onConfirm={() => onDelete(doc.id)} />
+              </div>
             ))
           )}
         </div>
@@ -248,6 +252,37 @@ export function HomeScreen({
         </div>
       </main>
     </div>
+  );
+}
+
+function DeleteButton({
+  title,
+  onConfirm,
+}: {
+  title: string;
+  onConfirm: () => void;
+}) {
+  return (
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        if (
+          window.confirm(
+            `Delete "${title}"? This removes the file and its index permanently.`,
+          )
+        ) {
+          onConfirm();
+        }
+      }}
+      title="Delete document"
+      aria-label={`Delete ${title}`}
+      className="flex h-7 w-7 items-center justify-center rounded-md text-faint opacity-0 transition hover:bg-danger-soft hover:text-danger focus:opacity-100 group-hover:opacity-100"
+    >
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+        <path d="M10 11v6M14 11v6" />
+      </svg>
+    </button>
   );
 }
 
